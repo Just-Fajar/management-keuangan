@@ -1,0 +1,47 @@
+# Internal Specification & Planning Documents (Private)
+AI_RULES.md
+PRD_FEATURES.md
+ARCHITECTURE.md
+DATABASE_SCHEMA.md
+ROADMAP_TASKS.md
+5. `ROADMAP_TASKS.md
+*ROADMAP_TASKS.md
+
+# Environment & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# Dependencies & Build Outputs
+node_modules/
+dist/
+.next/
+out/
+build/
+coverage/
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# AI Agent & IDE Internal Caches
+.gemini/
+.agents/
+brain/
