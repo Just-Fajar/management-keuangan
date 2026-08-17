@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Wallet, History, PlusCircle, CheckCircle2, ArrowRightLeft, RefreshCw, Settings, Sliders, PieChart, Shield, Database } from 'lucide-react';
+import { Wallet, History, PlusCircle, ArrowRightLeft, RefreshCw, Settings, Sliders, PieChart, Shield, Database } from 'lucide-react';
 import { useAccounts } from './hooks/useAccounts';
 import { useCategories } from './hooks/useCategories';
 import { usePresets } from './hooks/usePresets';
 import { useTransactions } from './hooks/useTransactions';
+import { useTheme } from './hooks/useTheme';
+import { ThemeToggle } from './components/ThemeToggle';
 import { QuickEntryForm } from './components/QuickEntryForm';
 import { PresetBar } from './components/PresetBar';
 import { PresetModal } from './components/PresetModal';
@@ -21,6 +23,8 @@ import { isCurrentMonth } from './utils/date';
 import { Preset, TransactionType } from './types/database';
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme();
+
   const {
     accounts,
     loading: loadingAccounts,
@@ -159,75 +163,74 @@ export default function App() {
   const isLoading = loadingAccounts || loadingCategories || loadingPresets || loadingTxs;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center p-3 sm:p-6 pb-20">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-100 flex flex-col items-center p-3 sm:p-6 pb-20 transition-colors duration-200">
       <div className="w-full max-w-md space-y-4">
         {/* Header App Bar */}
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-2xl border border-indigo-500/30">
+            <div className="p-2 bg-slate-900 dark:bg-emerald-600/20 text-white dark:text-emerald-400 rounded-2xl shadow-xs">
               <Wallet className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-white tracking-tight">Manajemen Keuangan</h1>
-              <p className="text-[11px] text-slate-400 font-medium">Zero-Friction &bull; 1-Tap Entry</p>
+              <h1 className="text-base font-black text-slate-900 dark:text-white tracking-tight">Manajemen Keuangan</h1>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">Simple &bull; Minimalist &bull; 1-Tap Entry</p>
             </div>
           </div>
+
           <div className="flex items-center gap-1.5">
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
             <button
               type="button"
               onClick={() => setIsBackupModalOpen(true)}
-              className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition-colors"
+              className="p-2 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-400 rounded-xl border border-slate-200/80 dark:border-zinc-800 transition-colors shadow-xs"
               title="Backup & Restore Data"
             >
-              <Database className="w-4 h-4 text-indigo-400" />
+              <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </button>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <CheckCircle2 className="w-3 h-3" /> PWA Offline
-            </span>
           </div>
         </div>
 
-        {/* Total Combined Balance Card */}
-        <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-3xl p-5 shadow-2xl text-white space-y-3 relative overflow-hidden">
-          <div className="flex items-center justify-between text-indigo-200 text-xs font-medium">
+        {/* Total Combined Balance Card - Clean Minimal Matte Styling */}
+        <div className="bg-slate-900 text-white dark:bg-zinc-900 border border-slate-800 dark:border-zinc-800 rounded-3xl p-5 shadow-sm space-y-3 relative overflow-hidden">
+          <div className="flex items-center justify-between text-slate-300 dark:text-zinc-400 text-xs font-medium">
             <span>Total Saldo Gabungan</span>
             <button
               type="button"
               onClick={() => setIsAccountModalOpen(true)}
-              className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm text-[10px] font-bold text-indigo-100 flex items-center gap-1 transition-colors border border-white/20"
+              className="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[10px] font-bold text-slate-200 dark:text-zinc-300 flex items-center gap-1 transition-colors border border-slate-700/60 dark:border-zinc-700/60"
             >
               <Settings className="w-3 h-3" /> Kelola Dompet ({accounts.length})
             </button>
           </div>
 
-          <div className="text-3xl font-black tracking-tight">{formatIDR(combinedBalance)}</div>
+          <div className="text-3xl font-black tracking-tight text-white">{formatIDR(combinedBalance)}</div>
 
           {/* Account Breakdown Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pt-1 scrollbar-none">
             {accounts.map((acc) => (
               <div
                 key={acc.id}
-                className="shrink-0 px-2.5 py-1 bg-black/20 backdrop-blur-md rounded-xl text-[11px] border border-white/10 flex items-center gap-1.5"
+                className="shrink-0 px-2.5 py-1 bg-slate-800/80 dark:bg-zinc-950 rounded-xl text-[11px] border border-slate-700/60 dark:border-zinc-800 flex items-center gap-1.5"
               >
-                <span className="font-semibold text-indigo-100">{acc.name}:</span>
-                <span className="font-bold text-white">{formatIDR(accountBalances[acc.id] ?? 0)}</span>
+                <span className="font-semibold text-slate-300 dark:text-zinc-400">{acc.name}:</span>
+                <span className="font-bold text-emerald-400">{formatIDR(accountBalances[acc.id] ?? 0)}</span>
               </div>
             ))}
           </div>
 
           {/* Action Buttons: Transfer & 1-Tap Reconcile */}
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-xs">
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800 dark:border-zinc-800 text-xs">
             <button
               type="button"
               onClick={() => setIsTransferModalOpen(true)}
-              className="py-2 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all"
+              className="py-2 bg-slate-800 hover:bg-slate-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all border border-slate-700/60 dark:border-zinc-700/60"
             >
               <ArrowRightLeft className="w-3.5 h-3.5" /> Transfer
             </button>
             <button
               type="button"
               onClick={() => setIsReconcileModalOpen(true)}
-              className="py-2 bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 text-amber-200 border border-amber-400/30 font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all"
+              className="py-2 bg-amber-500/15 hover:bg-amber-500/25 active:scale-95 text-amber-300 border border-amber-500/30 font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Reconcile
             </button>
@@ -235,14 +238,14 @@ export default function App() {
         </div>
 
         {/* Tab Navigation: Quick Entry / Analytics / Budgeting */}
-        <div className="grid grid-cols-3 p-1 bg-slate-900 border border-slate-800 rounded-2xl text-xs font-bold">
+        <div className="grid grid-cols-3 p-1 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl text-xs font-bold shadow-xs">
           <button
             type="button"
             onClick={() => setActiveTab('entry')}
             className={`py-2 rounded-xl transition-all flex items-center justify-center gap-1 ${
               activeTab === 'entry'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-slate-900 dark:bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <PlusCircle className="w-3.5 h-3.5" /> Quick Entry
@@ -252,8 +255,8 @@ export default function App() {
             onClick={() => setActiveTab('analytics')}
             className={`py-2 rounded-xl transition-all flex items-center justify-center gap-1 ${
               activeTab === 'analytics'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-slate-900 dark:bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <PieChart className="w-3.5 h-3.5" /> Cash Flow
@@ -263,8 +266,8 @@ export default function App() {
             onClick={() => setActiveTab('budget')}
             className={`py-2 rounded-xl transition-all flex items-center justify-center gap-1 ${
               activeTab === 'budget'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-slate-900 dark:bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Shield className="w-3.5 h-3.5" /> Soft-Limit
@@ -308,21 +311,21 @@ export default function App() {
 
         {/* TAB 3: SOFT-LIMIT BUDGETING */}
         {activeTab === 'budget' && (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-indigo-400" />
+                <Shield className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 <div>
-                  <h2 className="text-sm font-bold text-white">Soft-Limit Budget Bar</h2>
-                  <p className="text-[10px] text-slate-400">Hijau (&lt;75%) &bull; Kuning (75-90%) &bull; Merah (&gt;90%)</p>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-white">Soft-Limit Budget Bar</h2>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Hijau (&lt;75%) &bull; Kuning (75-90%) &bull; Merah (&gt;90%)</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsBudgetModalOpen(true)}
-                className="px-2.5 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs font-bold rounded-xl flex items-center gap-1 transition-all"
+                className="px-2.5 py-1.5 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 text-xs font-bold rounded-xl flex items-center gap-1 transition-all"
               >
-                <Sliders className="w-3.5 h-3.5" /> Atur Budget
+                <Sliders className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Atur Budget
               </button>
             </div>
 
@@ -340,16 +343,16 @@ export default function App() {
         )}
 
         {/* Transaction History & Search Filter Section */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-4 space-y-3 shadow-xl">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 space-y-3 shadow-xs">
           <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
-              <History className="w-4 h-4 text-indigo-400" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-zinc-200">
+              <History className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Riwayat Transaksi</span>
             </div>
             <button
               type="button"
               onClick={refreshTransactions}
-              className="text-[10px] font-medium text-slate-400 hover:text-slate-200 transition-colors"
+              className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
             >
               Refresh
             </button>
@@ -367,11 +370,11 @@ export default function App() {
           />
 
           {isLoading ? (
-            <p className="text-xs text-slate-500 italic text-center py-4">Memuat data...</p>
+            <p className="text-xs text-slate-400 dark:text-zinc-500 italic text-center py-4">Memuat data...</p>
           ) : filteredTransactions.length === 0 ? (
             <div className="text-center py-6 space-y-1">
-              <PlusCircle className="w-8 h-8 text-slate-700 mx-auto" />
-              <p className="text-xs text-slate-400 font-medium">Tidak ada transaksi ditemukan</p>
+              <PlusCircle className="w-8 h-8 text-slate-300 dark:text-zinc-700 mx-auto" />
+              <p className="text-xs text-slate-400 dark:text-zinc-500 font-medium">Tidak ada transaksi ditemukan</p>
             </div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
@@ -388,22 +391,22 @@ export default function App() {
                 return (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between p-3 bg-slate-800/40 border border-slate-800 rounded-2xl text-xs"
+                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 rounded-2xl text-xs"
                   >
                     <div className="space-y-0.5">
-                      <div className="font-semibold text-slate-200 flex items-center gap-1.5">
+                      <div className="font-semibold text-slate-900 dark:text-zinc-200 flex items-center gap-1.5">
                         {tx.note || cat?.name || 'Transaksi'}
                         {tx.note?.startsWith('Kopi') || tx.note?.startsWith('Bensin') ? (
-                          <span className="px-1.5 py-0.2 bg-amber-500/10 text-amber-400 text-[9px] rounded font-bold">1-TAP</span>
+                          <span className="px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 text-[9px] rounded font-bold">1-TAP</span>
                         ) : null}
                         {isTransfer && (
-                          <span className="px-1.5 py-0.2 bg-blue-500/10 text-blue-400 text-[9px] rounded font-bold">TRANSFER</span>
+                          <span className="px-1.5 py-0.2 bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 text-[9px] rounded font-bold">TRANSFER</span>
                         )}
                         {isAdjustment && (
-                          <span className="px-1.5 py-0.2 bg-amber-500/10 text-amber-300 text-[9px] rounded font-bold">RECONCILE</span>
+                          <span className="px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-[9px] rounded font-bold">RECONCILE</span>
                         )}
                       </div>
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-[10px] text-slate-500 dark:text-zinc-400">
                         {isTransfer
                           ? `${acc?.name} ➔ ${targetAcc?.name}`
                           : `${acc?.name || 'Dompet'}`} &bull; {new Date(tx.date).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' })}
@@ -412,14 +415,14 @@ export default function App() {
                     <div
                       className={`font-bold ${
                         isExpense
-                          ? 'text-rose-400'
+                          ? 'text-rose-600 dark:text-rose-400'
                           : isIncome
-                          ? 'text-emerald-400'
+                          ? 'text-emerald-600 dark:text-emerald-400'
                           : isTransfer
-                          ? 'text-blue-400'
+                          ? 'text-blue-600 dark:text-blue-400'
                           : tx.amount >= 0
-                          ? 'text-emerald-400'
-                          : 'text-rose-400'
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-rose-600 dark:text-rose-400'
                       }`}
                     >
                       {isExpense ? '-' : isIncome ? '+' : isTransfer ? '' : tx.amount >= 0 ? '+' : ''}
