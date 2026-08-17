@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Wallet, History, PlusCircle, CheckCircle2, ArrowRightLeft, RefreshCw, Settings, Sliders, PieChart, Shield } from 'lucide-react';
+import { Wallet, History, PlusCircle, CheckCircle2, ArrowRightLeft, RefreshCw, Settings, Sliders, PieChart, Shield, Database } from 'lucide-react';
 import { useAccounts } from './hooks/useAccounts';
 import { useCategories } from './hooks/useCategories';
 import { usePresets } from './hooks/usePresets';
@@ -15,6 +15,7 @@ import { SoftLimitProgressBar } from './components/SoftLimitProgressBar';
 import { CategoryBudgetModal } from './components/CategoryBudgetModal';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { TransactionSearchFilter } from './components/TransactionSearchFilter';
+import { DataBackupModal } from './components/DataBackupModal';
 import { formatIDR } from './utils/currency';
 import { isCurrentMonth } from './utils/date';
 import { Preset, TransactionType } from './types/database';
@@ -23,6 +24,7 @@ export default function App() {
   const {
     accounts,
     loading: loadingAccounts,
+    refreshAccounts,
     addAccount,
     updateAccount,
     deleteAccount,
@@ -30,7 +32,7 @@ export default function App() {
     getTotalCombinedBalance
   } = useAccounts();
 
-  const { categories, loading: loadingCategories, updateCategoryBudget } = useCategories();
+  const { categories, loading: loadingCategories, refreshCategories, updateCategoryBudget } = useCategories();
 
   const defaultAccId = accounts[0]?.id;
   const defaultCatId = categories.find((c) => c.type === 'expense')?.id;
@@ -38,6 +40,7 @@ export default function App() {
   const {
     presets,
     loading: loadingPresets,
+    refreshPresets,
     addPreset,
     updatePreset,
     deletePreset
@@ -70,6 +73,7 @@ export default function App() {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState<boolean>(false);
   const [isReconcileModalOpen, setIsReconcileModalOpen] = useState<boolean>(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState<boolean>(false);
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState<boolean>(false);
 
   const updateBalances = useCallback(async () => {
     if (accounts.length > 0) {
@@ -111,6 +115,14 @@ export default function App() {
 
   const handleReconcile = async (accountId: string, actualPhysicalBalance: number, note?: string) => {
     await adjustAccountBalance(accountId, actualPhysicalBalance, note);
+    await updateBalances();
+  };
+
+  const handleDataRestored = async () => {
+    await refreshAccounts();
+    await refreshCategories();
+    await refreshPresets();
+    await refreshTransactions();
     await updateBalances();
   };
 
@@ -160,9 +172,19 @@ export default function App() {
               <p className="text-[11px] text-slate-400 font-medium">Zero-Friction &bull; 1-Tap Entry</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <CheckCircle2 className="w-3 h-3" /> PWA Offline
-          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setIsBackupModalOpen(true)}
+              className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition-colors"
+              title="Backup & Restore Data"
+            >
+              <Database className="w-4 h-4 text-indigo-400" />
+            </button>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <CheckCircle2 className="w-3 h-3" /> PWA Offline
+            </span>
+          </div>
         </div>
 
         {/* Total Combined Balance Card */}
@@ -454,6 +476,16 @@ export default function App() {
         onClose={() => setIsBudgetModalOpen(false)}
         categories={categories}
         onUpdateCategoryBudget={updateCategoryBudget}
+      />
+
+      <DataBackupModal
+        isOpen={isBackupModalOpen}
+        onClose={() => setIsBackupModalOpen(false)}
+        accounts={accounts}
+        categories={categories}
+        transactions={transactions}
+        presets={presets}
+        onDataRestored={handleDataRestored}
       />
     </div>
   );
