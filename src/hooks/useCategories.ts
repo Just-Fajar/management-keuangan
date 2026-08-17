@@ -36,10 +36,17 @@ export function useCategories() {
     return newCat;
   };
 
+  const updateCategoryBudget = async (id: string, monthly_budget: number) => {
+    const updated = await repo.updateCategory(id, { monthly_budget });
+    await fetchCategories();
+    return updated;
+  };
+
   return {
     categories,
     loading,
     refreshCategories: fetchCategories,
-    addCategory
+    addCategory,
+    updateCategoryBudget
   };
 }
