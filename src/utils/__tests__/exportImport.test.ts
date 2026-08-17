@@ -51,6 +51,10 @@ describe('Grey-box Integration Test: parseAndRestoreJSONBackup with DexieReposit
   beforeEach(async () => {
     testDb = new FinanceDB(`RestoreTestDB_${Math.random()}`);
     await testDb.open();
+    await testDb.accounts.clear();
+    await testDb.categories.clear();
+    await testDb.presets.clear();
+    await testDb.transactions.clear();
     repo = new DexieRepository(testDb);
   });
 

@@ -11,14 +11,7 @@ export function useAccounts() {
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
     try {
-      let data = await repo.getAccounts();
-      // Seed default accounts if empty
-      if (data.length === 0) {
-        const defaultCash = await repo.createAccount({ name: 'Cash', type: 'cash', initial_balance: 100000, color: '#10B981' });
-        const defaultBank = await repo.createAccount({ name: 'Bank Utama', type: 'bank', initial_balance: 500000, color: '#3B82F6' });
-        const defaultEWallet = await repo.createAccount({ name: 'E-Wallet', type: 'ewallet', initial_balance: 50000, color: '#8B5CF6' });
-        data = [defaultCash, defaultBank, defaultEWallet];
-      }
+      const data = await repo.getAccounts();
       setAccounts(data);
     } finally {
       setLoading(false);

@@ -11,15 +11,7 @@ export function useCategories() {
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
-      let data = await repo.getCategories();
-      // Seed default categories if empty
-      if (data.length === 0) {
-        const catMakan = await repo.createCategory({ name: 'Makan & Minum', type: 'expense', monthly_budget: 1500000 });
-        const catBensin = await repo.createCategory({ name: 'Bensin & Transport', type: 'expense', monthly_budget: 300000 });
-        const catBelanja = await repo.createCategory({ name: 'Belanja Harian', type: 'expense', monthly_budget: 500000 });
-        const catGaji = await repo.createCategory({ name: 'Gaji & Income', type: 'income' });
-        data = [catMakan, catBensin, catBelanja, catGaji];
-      }
+      const data = await repo.getCategories();
       setCategories(data);
     } finally {
       setLoading(false);

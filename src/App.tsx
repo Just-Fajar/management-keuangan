@@ -38,9 +38,6 @@ export default function App() {
 
   const { categories, loading: loadingCategories, refreshCategories, updateCategoryBudget } = useCategories();
 
-  const defaultAccId = accounts[0]?.id;
-  const defaultCatId = categories.find((c) => c.type === 'expense')?.id;
-
   const {
     presets,
     loading: loadingPresets,
@@ -48,7 +45,7 @@ export default function App() {
     addPreset,
     updatePreset,
     deletePreset
-  } = usePresets(defaultAccId, defaultCatId);
+  } = usePresets();
 
   const {
     transactions,
