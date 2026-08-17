@@ -30,7 +30,7 @@ describe('Black-box Test: PresetBar 1-Tap Entry Component', () => {
     expect(screen.getAllByText('Rp 20.000').length).toBeGreaterThan(0);
   });
 
-  it('should trigger onSelectPreset immediately when preset button is tapped', () => {
+  it('should open confirmation modal and trigger onSelectPreset when confirmed', () => {
     const handleSelectPreset = vi.fn().mockResolvedValue(undefined);
 
     render(
@@ -41,7 +41,14 @@ describe('Black-box Test: PresetBar 1-Tap Entry Component', () => {
       />
     );
 
+    // Tap preset button
     fireEvent.click(screen.getAllByText('Kopi Pagi')[0]);
+
+    // Check confirmation modal opens
+    expect(screen.getByText('Konfirmasi 1-Tap Entry')).toBeDefined();
+
+    // Click confirm button
+    fireEvent.click(screen.getByRole('button', { name: /Ya, Catat Transaksi/i }));
 
     expect(handleSelectPreset).toHaveBeenCalledTimes(1);
     expect(handleSelectPreset).toHaveBeenCalledWith(dummyPresets[0]);
