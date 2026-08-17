@@ -18,9 +18,10 @@ import { CategoryBudgetModal } from './components/CategoryBudgetModal';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { TransactionSearchFilter } from './components/TransactionSearchFilter';
 import { DataBackupModal } from './components/DataBackupModal';
+import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { formatIDR } from './utils/currency';
 import { isCurrentMonth } from './utils/date';
-import { Preset, TransactionType } from './types/database';
+import { Preset, Transaction, TransactionType } from './types/database';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
@@ -76,6 +77,7 @@ export default function App() {
   const [isReconcileModalOpen, setIsReconcileModalOpen] = useState<boolean>(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState<boolean>(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState<boolean>(false);
+  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
 
   const updateBalances = useCallback(async () => {
     if (accounts.length > 0) {
@@ -120,11 +122,9 @@ export default function App() {
     await updateBalances();
   };
 
-  const handleDeleteTx = async (id: string) => {
-    if (confirm('Hapus transaksi ini dari riwayat? Saldo dompet akan diperbarui secara otomatis.')) {
-      await deleteTransaction(id);
-      await updateBalances();
-    }
+  const handleConfirmDeleteTx = async (id: string) => {
+    await deleteTransaction(id);
+    await updateBalances();
   };
 
   const handleDataRestored = async () => {
@@ -446,7 +446,7 @@ export default function App() {
                       {/* Delete Transaction Button */}
                       <button
                         type="button"
-                        onClick={() => handleDeleteTx(tx.id)}
+                        onClick={() => setDeletingTransaction(tx)}
                         className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors"
                         title="Hapus Transaksi"
                       >
@@ -514,6 +514,15 @@ export default function App() {
         transactions={transactions}
         presets={presets}
         onDataRestored={handleDataRestored}
+      />
+
+      <DeleteConfirmModal
+        isOpen={!!deletingTransaction}
+        onClose={() => setDeletingTransaction(null)}
+        transaction={deletingTransaction}
+        accounts={accounts}
+        categories={categories}
+        onConfirmDelete={handleConfirmDeleteTx}
       />
     </div>
   );
