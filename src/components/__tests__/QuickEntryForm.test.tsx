@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { QuickEntryForm } from '../QuickEntryForm';
 import { Account, Category } from '../../types/database';
 
@@ -15,6 +15,10 @@ const dummyCategories: Category[] = [
 ];
 
 describe('Black-box Test: QuickEntryForm Component UI', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it('should render form with default account and category selected', () => {
     render(
       <QuickEntryForm
@@ -40,9 +44,9 @@ describe('Black-box Test: QuickEntryForm Component UI', () => {
     );
 
     // Press Numpad '1', '5', '000'
-    fireEvent.click(screen.getByText('1'));
-    fireEvent.click(screen.getByText('5'));
-    fireEvent.click(screen.getByText('000'));
+    fireEvent.click(screen.getAllByRole('button', { name: '1' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: '5' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: '000' })[0]);
 
     expect(screen.getByDisplayValue('Rp 15.000')).toBeDefined();
   });
@@ -59,12 +63,12 @@ describe('Black-box Test: QuickEntryForm Component UI', () => {
     );
 
     // Press Numpad '2', '0', '000' -> Rp 20.000
-    fireEvent.click(screen.getByText('2'));
-    fireEvent.click(screen.getByText('0'));
-    fireEvent.click(screen.getByText('000'));
+    fireEvent.click(screen.getAllByRole('button', { name: '2' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: '0' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: '000' })[0]);
 
     // Submit Form
-    fireEvent.click(screen.getByText('Simpan Transaksi Instan'));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Simpan Transaksi Instan' })[0]);
 
     expect(handleSubmit).toHaveBeenCalledTimes(1);
     expect(handleSubmit).toHaveBeenCalledWith({

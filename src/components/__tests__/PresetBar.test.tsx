@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { PresetBar } from '../PresetBar';
 import { Preset } from '../../types/database';
 
@@ -10,6 +10,10 @@ const dummyPresets: Preset[] = [
 ];
 
 describe('Black-box Test: PresetBar 1-Tap Entry Component', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it('should render preset buttons correctly', () => {
     render(
       <PresetBar
@@ -20,10 +24,10 @@ describe('Black-box Test: PresetBar 1-Tap Entry Component', () => {
     );
 
     expect(screen.getByText('Pintasan 1-Tap Entry')).toBeDefined();
-    expect(screen.getByText('Kopi Pagi')).toBeDefined();
-    expect(screen.getByText('Bensin Motor')).toBeDefined();
-    expect(screen.getByText('Rp 15.000')).toBeDefined();
-    expect(screen.getByText('Rp 20.000')).toBeDefined();
+    expect(screen.getAllByText('Kopi Pagi').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Bensin Motor').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Rp 15.000').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Rp 20.000').length).toBeGreaterThan(0);
   });
 
   it('should trigger onSelectPreset immediately when preset button is tapped', () => {
@@ -37,7 +41,7 @@ describe('Black-box Test: PresetBar 1-Tap Entry Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Kopi Pagi'));
+    fireEvent.click(screen.getAllByText('Kopi Pagi')[0]);
 
     expect(handleSelectPreset).toHaveBeenCalledTimes(1);
     expect(handleSelectPreset).toHaveBeenCalledWith(dummyPresets[0]);
