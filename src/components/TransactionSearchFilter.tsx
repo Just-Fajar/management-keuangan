@@ -1,0 +1,95 @@
+import { Search, X } from 'lucide-react';
+import { Category } from '../types/database';
+
+interface TransactionSearchFilterProps {
+  searchTerm: string;
+  onSearchTermChange: (val: string) => void;
+  selectedCategoryFilter: string;
+  onCategoryFilterChange: (val: string) => void;
+  selectedTypeFilter: string;
+  onTypeFilterChange: (val: string) => void;
+  categories: Category[];
+}
+
+export function TransactionSearchFilter({
+  searchTerm,
+  onSearchTermChange,
+  selectedCategoryFilter,
+  onCategoryFilterChange,
+  selectedTypeFilter,
+  onTypeFilterChange,
+  categories
+}: TransactionSearchFilterProps) {
+  const hasFilter = searchTerm !== '' || selectedCategoryFilter !== '' || selectedTypeFilter !== '';
+
+  const clearAll = () => {
+    onSearchTermChange('');
+    onCategoryFilterChange('');
+    onTypeFilterChange('');
+  };
+
+  return (
+    <div className="space-y-2 bg-slate-900/60 border border-slate-800 p-3 rounded-2xl text-xs">
+      {/* Search Input Bar */}
+      <div className="relative flex items-center">
+        <Search className="w-4 h-4 text-slate-400 absolute left-3" />
+        <input
+          type="text"
+          placeholder="Cari transaksi berdasarkan catatan / nominal..."
+          value={searchTerm}
+          onChange={(e) => onSearchTermChange(e.target.value)}
+          className="w-full bg-slate-800 border border-slate-700/80 text-white rounded-xl pl-9 pr-8 py-2 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => onSearchTermChange('')}
+            className="absolute right-2.5 p-1 text-slate-400 hover:text-white"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Category & Type Selectors */}
+      <div className="grid grid-cols-2 gap-2">
+        <select
+          value={selectedTypeFilter}
+          onChange={(e) => onTypeFilterChange(e.target.value)}
+          className="bg-slate-800 border border-slate-700/80 text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none text-[11px]"
+        >
+          <option value="">Semua Tipe Transaksi</option>
+          <option value="expense">Pengeluaran</option>
+          <option value="income">Pemasukan</option>
+          <option value="transfer">Transfer</option>
+          <option value="adjustment">Adjustment</option>
+        </select>
+
+        <select
+          value={selectedCategoryFilter}
+          onChange={(e) => onCategoryFilterChange(e.target.value)}
+          className="bg-slate-800 border border-slate-700/80 text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none text-[11px]"
+        >
+          <option value="">Semua Kategori</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {hasFilter && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={clearAll}
+            className="text-[10px] text-indigo-400 hover:text-indigo-300 underline"
+          >
+            Reset Filter
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
