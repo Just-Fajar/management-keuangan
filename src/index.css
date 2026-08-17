@@ -25,3 +25,27 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-slate-400 dark:bg-zinc-700;
 }
+
+/* Smooth Horizontal Scrollbar for Account Pills */
+.horizontal-scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.horizontal-scroll-smooth::-webkit-scrollbar {
+  height: 4px;
+}
+
+.horizontal-scroll-smooth::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+}
+
+.horizontal-scroll-smooth::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+}
+
+.horizontal-scroll-smooth::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
