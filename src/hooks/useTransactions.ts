@@ -41,6 +41,18 @@ export function useTransactions() {
     return tx;
   };
 
+  const transferFunds = async (fromAccountId: string, toAccountId: string, amount: number, note?: string) => {
+    const tx = await repo.createTransfer(fromAccountId, toAccountId, amount, note);
+    await fetchTransactions();
+    return tx;
+  };
+
+  const adjustAccountBalance = async (accountId: string, actualPhysicalBalance: number, note?: string) => {
+    const tx = await repo.reconcileAccountBalance(accountId, actualPhysicalBalance, note);
+    await fetchTransactions();
+    return tx;
+  };
+
   const deleteTransaction = async (id: string) => {
     await repo.deleteTransaction(id);
     await fetchTransactions();
@@ -52,6 +64,8 @@ export function useTransactions() {
     refreshTransactions: fetchTransactions,
     addTransaction,
     record1TapPreset,
+    transferFunds,
+    adjustAccountBalance,
     deleteTransaction
   };
 }

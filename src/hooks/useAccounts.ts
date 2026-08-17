@@ -35,6 +35,17 @@ export function useAccounts() {
     return newAcc;
   };
 
+  const updateAccount = async (id: string, input: Partial<CreateAccountInput>) => {
+    const updated = await repo.updateAccount(id, input);
+    await fetchAccounts();
+    return updated;
+  };
+
+  const deleteAccount = async (id: string) => {
+    await repo.deleteAccount(id);
+    await fetchAccounts();
+  };
+
   const getAccountBalance = async (accountId: string) => {
     return await repo.getAccountBalance(accountId);
   };
@@ -48,6 +59,8 @@ export function useAccounts() {
     loading,
     refreshAccounts: fetchAccounts,
     addAccount,
+    updateAccount,
+    deleteAccount,
     getAccountBalance,
     getTotalCombinedBalance
   };
