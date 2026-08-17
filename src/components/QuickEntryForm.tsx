@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Wallet, Tag, ArrowUpCircle, ArrowDownCircle, Check, Calculator } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, CheckCircle2 } from 'lucide-react';
 import { Account, Category, TransactionType } from '../types/database';
 import { formatIDR } from '../utils/currency';
 import { Numpad } from './Numpad';
@@ -17,18 +17,14 @@ interface QuickEntryFormProps {
 }
 
 export function QuickEntryForm({ accounts, categories, onSubmit }: QuickEntryFormProps) {
-  const [type, setType] = useState<TransactionType>('expense');
-  const [amountStr, setAmountStr] = useState<string>('');
+  const [amountStr, setAmountStr] = useState<string>('0');
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [type, setType] = useState<TransactionType>('expense');
   const [note, setNote] = useState<string>('');
-  const [showNumpad, setShowNumpad] = useState<boolean>(true);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showToast, setShowToast] = useState<boolean>(false);
 
-  const amountInputRef = useRef<HTMLInputElement>(null);
-
-  // Set default selected account and category
   useEffect(() => {
     if (accounts.length > 0 && !selectedAccountId) {
       setSelectedAccountId(accounts[0].id);
@@ -36,149 +32,140 @@ export function QuickEntryForm({ accounts, categories, onSubmit }: QuickEntryFor
   }, [accounts, selectedAccountId]);
 
   useEffect(() => {
-    const filteredCat = categories.filter((c) => c.type === (type === 'income' ? 'income' : 'expense'));
-    if (filteredCat.length > 0) {
-      setSelectedCategoryId(filteredCat[0].id);
+    const defaultCat = categories.find((c) => c.type === type);
+    if (defaultCat) {
+      setSelectedCategoryId(defaultCat.id);
+    } else if (categories.length > 0) {
+      setSelectedCategoryId(categories[0].id);
     }
   }, [categories, type]);
 
-  // Auto-focus input on mount
-  useEffect(() => {
-    if (amountInputRef.current) {
-      amountInputRef.current.focus();
-    }
-  }, []);
-
-  const numAmount = parseInt(amountStr || '0', 10);
-
-  const handleNumpadKeyPress = (key: string) => {
-    if (amountStr.length >= 10) return; // Limit length
-    if (amountStr === '' && (key === '0' || key === '000')) return;
-    setAmountStr((prev) => prev + key);
+  const handleDigitPress = (digit: string) => {
+    setAmountStr((prev) => {
+      if (prev === '0') {
+        return digit === '000' ? '0' : digit;
+      }
+      return prev + digit;
+    });
   };
 
-  const handleNumpadDelete = () => {
-    setAmountStr((prev) => prev.slice(0, -1));
+  const handleDeletePress = () => {
+    setAmountStr((prev) => {
+      if (prev.length <= 1) return '0';
+      return prev.slice(0, -1);
+    });
   };
 
-  const handleNumpadClear = () => {
-    setAmountStr('');
+  const handleClearPress = () => {
+    setAmountStr('0');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (numAmount <= 0) {
-      alert('Masukkan nominal transaksi');
+    const amount = parseInt(amountStr, 10);
+
+    if (isNaN(amount) || amount <= 0) {
+      alert('Masukkan nominal transaksi yang valid (> 0)');
       return;
     }
-    if (!selectedAccountId) {
-      alert('Pilih dompet/rekening');
+    if (!selectedAccountId || !selectedCategoryId) {
+      alert('Pilih dompet dan kategori transaksi');
       return;
     }
 
-    setSubmitting(true);
+    setIsSubmitting(true);
     try {
       await onSubmit({
         account_id: selectedAccountId,
         category_id: selectedCategoryId,
         type,
-        amount: numAmount,
+        amount,
         note: note.trim() || undefined
       });
 
-      // Show toast confirmation
-      const formatted = formatIDR(numAmount);
-      setToastMessage(`Transaksi ${formatted} berhasil dicatat!`);
-      setTimeout(() => setToastMessage(null), 3000);
-
       // Reset form
-      setAmountStr('');
+      setAmountStr('0');
       setNote('');
+
+      // Show toast confirmation
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2500);
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  const filteredCategories = categories.filter((c) => c.type === (type === 'income' ? 'income' : 'expense'));
+  const currentAmountNum = parseInt(amountStr, 10) || 0;
+  const filteredCategories = categories.filter((c) => c.type === type);
 
   return (
-    <div className="w-full bg-slate-800/90 backdrop-blur-md border border-slate-700/80 rounded-3xl p-5 shadow-2xl space-y-5">
-      {/* Toast Confirmation */}
-      {toastMessage && (
-        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-2.5 rounded-2xl text-xs font-semibold flex items-center justify-between animate-fade-in">
-          <span>{toastMessage}</span>
-          <Check className="w-4 h-4 text-emerald-400" />
+    <div className="relative bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-5 shadow-xs space-y-4">
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5 animate-bounce">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>Transaksi Berhasil Dicatat!</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Type Toggle: Expense / Income */}
-        <div className="grid grid-cols-2 p-1 bg-slate-900/60 rounded-2xl border border-slate-700/50">
-          <button
-            type="button"
-            onClick={() => setType('expense')}
-            className={`py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              type === 'expense'
-                ? 'bg-rose-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <ArrowDownCircle className="w-4 h-4" />
-            Pengeluaran
-          </button>
-          <button
-            type="button"
-            onClick={() => setType('income')}
-            className={`py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              type === 'income'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <ArrowUpCircle className="w-4 h-4" />
-            Pemasukan
-          </button>
-        </div>
+      {/* Transaction Type Segmented Switcher */}
+      <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-zinc-800/60 rounded-2xl text-xs font-bold">
+        <button
+          type="button"
+          onClick={() => setType('expense')}
+          className={`py-2 rounded-xl transition-all ${
+            type === 'expense'
+              ? 'bg-rose-500 text-white shadow-xs'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          Pengeluaran (-)
+        </button>
+        <button
+          type="button"
+          onClick={() => setType('income')}
+          className={`py-2 rounded-xl transition-all ${
+            type === 'income'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          Pemasukan (+)
+        </button>
+      </div>
 
-        {/* Big Auto-Focus Amount Display */}
-        <div className="relative bg-slate-900/80 border border-slate-700/80 rounded-2xl p-4 text-center focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
-          <label htmlFor="amount-input" className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Real-time Amount Display */}
+        <div className="space-y-1">
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
             Nominal Transaksi (Auto-Focus)
           </label>
-          <div className="flex items-center justify-center gap-1">
-            <input
-              id="amount-input"
-              ref={amountInputRef}
-              type="text"
-              readOnly
-              value={formatIDR(numAmount)}
-              onClick={() => setShowNumpad(true)}
-              className="w-full bg-transparent text-3xl font-extrabold text-white text-center focus:outline-none cursor-pointer tracking-tight"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowNumpad(!showNumpad)}
-            className="absolute right-3 top-3 p-1.5 text-slate-400 hover:text-indigo-400 rounded-lg transition-colors"
-            title="Toggle Numpad"
-          >
-            <Calculator className="w-4 h-4" />
-          </button>
+          <input
+            type="text"
+            readOnly
+            value={formatIDR(currentAmountNum)}
+            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-2xl px-4 py-3 text-2xl font-black tracking-tight text-right shadow-inner focus:outline-none select-none"
+          />
         </div>
 
-        {/* Account & Category Selectors */}
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          {/* Account Selector */}
+        {/* Numpad Keyboard */}
+        <Numpad
+          onDigitPress={handleDigitPress}
+          onDeletePress={handleDeletePress}
+          onClearPress={handleClearPress}
+        />
+
+        {/* Account and Category Selectors */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
-            <label htmlFor="account-select" className="block font-semibold text-slate-400 mb-1 flex items-center gap-1">
-              <Wallet className="w-3.5 h-3.5 text-indigo-400" /> Dompet
+            <label htmlFor="account-select" className="block font-semibold text-slate-600 dark:text-zinc-400 mb-1">
+              Dompet / Sumber
             </label>
             <select
               id="account-select"
               value={selectedAccountId}
               onChange={(e) => setSelectedAccountId(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700/80 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+              className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
               {accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
@@ -188,16 +175,15 @@ export function QuickEntryForm({ accounts, categories, onSubmit }: QuickEntryFor
             </select>
           </div>
 
-          {/* Category Selector */}
           <div>
-            <label htmlFor="category-select" className="block font-semibold text-slate-400 mb-1 flex items-center gap-1">
-              <Tag className="w-3.5 h-3.5 text-indigo-400" /> Kategori
+            <label htmlFor="category-select" className="block font-semibold text-slate-600 dark:text-zinc-400 mb-1">
+              Kategori
             </label>
             <select
               id="category-select"
               value={selectedCategoryId}
               onChange={(e) => setSelectedCategoryId(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700/80 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+              className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
               {filteredCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -208,38 +194,35 @@ export function QuickEntryForm({ accounts, categories, onSubmit }: QuickEntryFor
           </div>
         </div>
 
-        {/* Optional Note Input */}
+        {/* Note / Catatan Input */}
         <div>
+          <label htmlFor="note-input" className="block font-semibold text-slate-600 dark:text-zinc-400 text-xs mb-1">
+            Catatan (Opsional)
+          </label>
           <input
+            id="note-input"
             type="text"
-            placeholder="Catatan singkat (opsional)..."
+            placeholder="contoh: Nasi Goreng Pagi"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full bg-slate-900/80 border border-slate-700/80 text-white text-xs rounded-xl px-3 py-2.5 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 placeholder:text-slate-400 dark:placeholder:text-zinc-600"
           />
         </div>
 
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={submitting || numAmount <= 0}
-          className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-2xl shadow-lg transition-all"
+          disabled={isSubmitting || currentAmountNum <= 0}
+          className={`w-full py-3.5 ${
+            type === 'expense'
+              ? 'bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white'
+              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+          } disabled:opacity-40 font-bold text-xs rounded-2xl shadow-sm active:scale-98 transition-all flex items-center justify-center gap-2`}
         >
-          {submitting ? 'Mencatat...' : 'Simpan Transaksi Instan'}
+          <Send className="w-4 h-4" />
+          {isSubmitting ? 'Mencatat...' : 'Simpan Transaksi Instan'}
         </button>
       </form>
-
-      {/* Digital Numpad Component */}
-      {showNumpad && (
-        <div className="pt-2">
-          <Numpad
-            onKeyPress={handleNumpadKeyPress}
-            onDelete={handleNumpadDelete}
-            onClear={handleNumpadClear}
-            onClose={() => setShowNumpad(false)}
-          />
-        </div>
-      )}
     </div>
   );
 }

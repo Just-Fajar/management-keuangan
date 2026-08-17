@@ -61,18 +61,18 @@ export function TransferModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-6 shadow-xl space-y-5 text-slate-900 dark:text-white">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 pb-3">
           <div className="flex items-center gap-2">
-            <ArrowRightLeft className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-base font-bold text-white">Transfer Manual Antar Dompet</h2>
+            <ArrowRightLeft className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <h2 className="text-base font-bold">Transfer Manual Antar Dompet</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors"
+            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -80,16 +80,16 @@ export function TransferModal({
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* From & To Selectors */}
-          <div className="space-y-3 bg-slate-800/40 p-4 border border-slate-800 rounded-2xl">
+          <div className="space-y-3 bg-slate-50 dark:bg-zinc-950 p-4 border border-slate-200/80 dark:border-zinc-800 rounded-2xl">
             <div>
-              <label htmlFor="from-account" className="block font-semibold text-slate-400 mb-1">
+              <label htmlFor="from-account" className="block font-semibold text-slate-600 dark:text-zinc-400 mb-1">
                 Dompet Asal (Pindah Dari)
               </label>
               <select
                 id="from-account"
                 value={fromAccountId}
                 onChange={(e) => setFromAccountId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -100,14 +100,14 @@ export function TransferModal({
             </div>
 
             <div>
-              <label htmlFor="to-account" className="block font-semibold text-slate-400 mb-1">
+              <label htmlFor="to-account" className="block font-semibold text-slate-600 dark:text-zinc-400 mb-1">
                 Dompet Tujuan (Ke Dompet)
               </label>
               <select
                 id="to-account"
                 value={toAccountId}
                 onChange={(e) => setToAccountId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+                className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -120,7 +120,7 @@ export function TransferModal({
 
           {/* Amount */}
           <div>
-            <label htmlFor="transfer-amount" className="block font-semibold text-slate-400 mb-1">
+            <label htmlFor="transfer-amount" className="block font-semibold text-slate-600 dark:text-zinc-400 mb-1">
               Nominal Transfer (Rupiah)
             </label>
             <input
@@ -129,13 +129,13 @@ export function TransferModal({
               placeholder="contoh: 50000"
               value={amountStr}
               onChange={(e) => setAmountStr(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 text-white font-bold text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white font-bold text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
           {/* Note */}
           <div>
-            <label htmlFor="transfer-note" className="block font-semibold text-slate-400 mb-1">
+            <label htmlFor="transfer-note" className="block font-semibold text-slate-600 dark:text-zinc-400 mb-1">
               Catatan (Opsional)
             </label>
             <input
@@ -144,7 +144,7 @@ export function TransferModal({
               placeholder="contoh: Tarik tunai dari BCA"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
@@ -153,7 +153,7 @@ export function TransferModal({
             <button
               type="submit"
               disabled={isSubmitting || !amountStr}
-              className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white font-bold rounded-2xl shadow-lg transition-all"
+              className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-2xl shadow-xs transition-all"
             >
               {isSubmitting ? 'Memproses...' : 'Proses Transfer Manual'}
             </button>

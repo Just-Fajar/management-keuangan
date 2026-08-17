@@ -29,22 +29,22 @@ export function TransactionSearchFilter({
   };
 
   return (
-    <div className="space-y-2 bg-slate-900/60 border border-slate-800 p-3 rounded-2xl text-xs">
+    <div className="space-y-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 p-3 rounded-2xl text-xs">
       {/* Search Input Bar */}
       <div className="relative flex items-center">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3" />
+        <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3" />
         <input
           type="text"
-          placeholder="Cari transaksi berdasarkan catatan / nominal..."
+          placeholder="Cari transaksi / nominal..."
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
-          className="w-full bg-slate-800 border border-slate-700/80 text-white rounded-xl pl-9 pr-8 py-2 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-xl pl-9 pr-8 py-2 placeholder:text-slate-400 dark:placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
         />
         {searchTerm && (
           <button
             type="button"
             onClick={() => onSearchTermChange('')}
-            className="absolute right-2.5 p-1 text-slate-400 hover:text-white"
+            className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -56,7 +56,7 @@ export function TransactionSearchFilter({
         <select
           value={selectedTypeFilter}
           onChange={(e) => onTypeFilterChange(e.target.value)}
-          className="bg-slate-800 border border-slate-700/80 text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none text-[11px]"
+          className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-200 rounded-xl px-2.5 py-1.5 focus:outline-none text-[11px] font-medium"
         >
           <option value="">Semua Tipe Transaksi</option>
           <option value="expense">Pengeluaran</option>
@@ -68,7 +68,7 @@ export function TransactionSearchFilter({
         <select
           value={selectedCategoryFilter}
           onChange={(e) => onCategoryFilterChange(e.target.value)}
-          className="bg-slate-800 border border-slate-700/80 text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none text-[11px]"
+          className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-200 rounded-xl px-2.5 py-1.5 focus:outline-none text-[11px] font-medium"
         >
           <option value="">Semua Kategori</option>
           {categories.map((c) => (
@@ -80,11 +80,11 @@ export function TransactionSearchFilter({
       </div>
 
       {hasFilter && (
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-0.5">
           <button
             type="button"
             onClick={clearAll}
-            className="text-[10px] text-indigo-400 hover:text-indigo-300 underline"
+            className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
           >
             Reset Filter
           </button>
