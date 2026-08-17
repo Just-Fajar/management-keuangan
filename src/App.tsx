@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Wallet, History, PlusCircle, ArrowRightLeft, RefreshCw, Settings, Sliders, PieChart, Shield, Database, Trash2 } from 'lucide-react';
 import { useAccounts } from './hooks/useAccounts';
 import { useCategories } from './hooks/useCategories';
@@ -78,6 +78,31 @@ export default function App() {
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState<boolean>(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState<boolean>(false);
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
+
+  // Mouse Drag-to-Scroll Refs & State for Account Pills
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftPos, setScrollLeftPos] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsMouseDown(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeftPos(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeaveOrUp = () => {
+    setIsMouseDown(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDown || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.8;
+    scrollRef.current.scrollLeft = scrollLeftPos - walk;
+  };
 
   const updateBalances = useCallback(async () => {
     if (accounts.length > 0) {
@@ -212,14 +237,22 @@ export default function App() {
             {formatIDR(combinedBalance)}
           </div>
 
-          {/* Account Breakdown Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-1 scrollbar-none">
+          {/* Account Breakdown Pills (Drag-to-Scroll + Smooth Touch Swipe) */}
+          <div
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeaveOrUp}
+            onMouseUp={handleMouseLeaveOrUp}
+            onMouseMove={handleMouseMove}
+            className="flex items-center gap-2 overflow-x-auto pt-1 pb-1.5 cursor-grab active:cursor-grabbing select-none horizontal-scroll-smooth"
+            title="Klik & drag mouse di laptop atau swipe di HP untuk melihat semua dompet"
+          >
             {accounts.map((acc) => {
               const bal = accountBalances[acc.id] ?? 0;
               return (
                 <div
                   key={acc.id}
-                  className="shrink-0 px-2.5 py-1 bg-slate-800/80 dark:bg-zinc-950 rounded-xl text-[11px] border border-slate-700/60 dark:border-zinc-800 flex items-center gap-1.5"
+                  className="shrink-0 px-2.5 py-1 bg-slate-800/80 dark:bg-zinc-950 rounded-xl text-[11px] border border-slate-700/60 dark:border-zinc-800 flex items-center gap-1.5 shadow-2xs"
                 >
                   <span className="font-semibold text-slate-300 dark:text-zinc-400">{acc.name}:</span>
                   <span className={`font-bold ${bal < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
