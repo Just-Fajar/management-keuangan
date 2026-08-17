@@ -79,29 +79,38 @@ export default function App() {
   const [isBackupModalOpen, setIsBackupModalOpen] = useState<boolean>(false);
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
 
-  // Mouse Drag-to-Scroll Refs & State for Account Pills
+  // Pointer Drag-to-Scroll Refs & State for Account Pills
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeftPos, setScrollLeftPos] = useState(0);
+  const [isPointerDown, setIsPointerDown] = useState(false);
+  const [pointerStartX, setPointerStartX] = useState(0);
+  const [pointerScrollLeft, setPointerScrollLeft] = useState(0);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!scrollRef.current) return;
-    setIsMouseDown(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeftPos(scrollRef.current.scrollLeft);
+    setIsPointerDown(true);
+    setPointerStartX(e.clientX - scrollRef.current.offsetLeft);
+    setPointerScrollLeft(scrollRef.current.scrollLeft);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Fallback for browsers without pointer capture support
+    }
   };
 
-  const handleMouseLeaveOrUp = () => {
-    setIsMouseDown(false);
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDown || !scrollRef.current) return;
+    const x = e.clientX - scrollRef.current.offsetLeft;
+    const walk = (x - pointerStartX) * 1.8;
+    scrollRef.current.scrollLeft = pointerScrollLeft - walk;
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isMouseDown || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1.8;
-    scrollRef.current.scrollLeft = scrollLeftPos - walk;
+  const handlePointerUpOrCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsPointerDown(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // Fallback
+    }
   };
 
   const updateBalances = useCallback(async () => {
@@ -237,14 +246,14 @@ export default function App() {
             {formatIDR(combinedBalance)}
           </div>
 
-          {/* Account Breakdown Pills (Drag-to-Scroll + Smooth Touch Swipe) */}
+          {/* Account Breakdown Pills (Pointer Capture Drag-to-Scroll + Touch Swipe) */}
           <div
             ref={scrollRef}
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeaveOrUp}
-            onMouseUp={handleMouseLeaveOrUp}
-            onMouseMove={handleMouseMove}
-            className="flex items-center gap-2 overflow-x-auto pt-1 pb-1.5 cursor-grab active:cursor-grabbing select-none horizontal-scroll-smooth"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUpOrCancel}
+            onPointerCancel={handlePointerUpOrCancel}
+            className="flex items-center gap-2 overflow-x-auto pt-1 pb-1.5 cursor-grab active:cursor-grabbing select-none horizontal-scroll-smooth touch-pan-x"
             title="Klik & drag mouse di laptop atau swipe di HP untuk melihat semua dompet"
           >
             {accounts.map((acc) => {
@@ -252,7 +261,7 @@ export default function App() {
               return (
                 <div
                   key={acc.id}
-                  className="shrink-0 px-2.5 py-1 bg-slate-800/80 dark:bg-zinc-950 rounded-xl text-[11px] border border-slate-700/60 dark:border-zinc-800 flex items-center gap-1.5 shadow-2xs"
+                  className="shrink-0 px-2.5 py-1 bg-slate-800/80 dark:bg-zinc-950 rounded-xl text-[11px] border border-slate-700/60 dark:border-zinc-800 flex items-center gap-1.5 shadow-2xs pointer-events-none"
                 >
                   <span className="font-semibold text-slate-300 dark:text-zinc-400">{acc.name}:</span>
                   <span className={`font-bold ${bal < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
