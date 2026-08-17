@@ -39,5 +39,5 @@ export interface Preset {
 
 export type CreateAccountInput = Omit<Account, 'id'>;
 export type CreateCategoryInput = Omit<Category, 'id'>;
-export type CreateTransactionInput = Omit<Transaction, 'id'>;
+export type CreateTransactionInput = Omit<Transaction, 'id' | 'date'> & { date?: string };
 export type CreatePresetInput = Omit<Preset, 'id'>;
