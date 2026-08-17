@@ -11,6 +11,10 @@ describe('Grey-box Integration Test: DexieRepository & IndexedDB', () => {
     // Unique in-memory database name per test
     testDb = new FinanceDB(`TestDB_${Math.random()}`);
     await testDb.open();
+    // Clear auto-populated tables for isolated unit testing
+    await testDb.accounts.clear();
+    await testDb.categories.clear();
+    await testDb.presets.clear();
     repo = new DexieRepository(testDb);
   });
 
