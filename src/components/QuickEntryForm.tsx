@@ -96,7 +96,12 @@ export function QuickEntryForm({ accounts, categories, onSubmit }: QuickEntryFor
   };
 
   const currentAmountNum = parseInt(amountStr, 10) || 0;
-  const filteredCategories = categories.filter((c) => c.type === type);
+  
+  // Deduplicate categories and accounts by ID
+  const uniqueAccounts = Array.from(new Map(accounts.map((a) => [a.id, a])).values());
+  const uniqueFilteredCategories = Array.from(
+    new Map(categories.filter((c) => c.type === type).map((c) => [c.id, c])).values()
+  );
 
   return (
     <div className="relative bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-5 shadow-xs space-y-4">
@@ -167,7 +172,7 @@ export function QuickEntryForm({ accounts, categories, onSubmit }: QuickEntryFor
               onChange={(e) => setSelectedAccountId(e.target.value)}
               className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
-              {accounts.map((acc) => (
+              {uniqueAccounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
                   {acc.name} ({acc.type.toUpperCase()})
                 </option>
@@ -185,7 +190,7 @@ export function QuickEntryForm({ accounts, categories, onSubmit }: QuickEntryFor
               onChange={(e) => setSelectedCategoryId(e.target.value)}
               className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
-              {filteredCategories.map((cat) => (
+              {uniqueFilteredCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>

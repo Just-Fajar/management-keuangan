@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Wallet, History, PlusCircle, ArrowRightLeft, RefreshCw, Settings, Sliders, PieChart, Shield, Database } from 'lucide-react';
+import { Wallet, History, PlusCircle, ArrowRightLeft, RefreshCw, Settings, Sliders, PieChart, Shield, Database, Trash2 } from 'lucide-react';
 import { useAccounts } from './hooks/useAccounts';
 import { useCategories } from './hooks/useCategories';
 import { usePresets } from './hooks/usePresets';
@@ -54,6 +54,7 @@ export default function App() {
     record1TapPreset,
     transferFunds,
     adjustAccountBalance,
+    deleteTransaction,
     refreshTransactions
   } = useTransactions();
 
@@ -117,6 +118,13 @@ export default function App() {
   const handleReconcile = async (accountId: string, actualPhysicalBalance: number, note?: string) => {
     await adjustAccountBalance(accountId, actualPhysicalBalance, note);
     await updateBalances();
+  };
+
+  const handleDeleteTx = async (id: string) => {
+    if (confirm('Hapus transaksi ini dari riwayat? Saldo dompet akan diperbarui secara otomatis.')) {
+      await deleteTransaction(id);
+      await updateBalances();
+    }
   };
 
   const handleDataRestored = async () => {
@@ -187,7 +195,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Total Combined Balance Card - Clean Minimal Matte Styling */}
+        {/* Total Combined Balance Card */}
         <div className="bg-slate-900 text-white dark:bg-zinc-900 border border-slate-800 dark:border-zinc-800 rounded-3xl p-5 shadow-sm space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-300 dark:text-zinc-400 text-xs font-medium">
             <span>Total Saldo Gabungan</span>
@@ -200,19 +208,26 @@ export default function App() {
             </button>
           </div>
 
-          <div className="text-3xl font-black tracking-tight text-white">{formatIDR(combinedBalance)}</div>
+          <div className={`text-3xl font-black tracking-tight ${combinedBalance < 0 ? 'text-rose-400' : 'text-white'}`}>
+            {formatIDR(combinedBalance)}
+          </div>
 
           {/* Account Breakdown Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pt-1 scrollbar-none">
-            {accounts.map((acc) => (
-              <div
-                key={acc.id}
-                className="shrink-0 px-2.5 py-1 bg-slate-800/80 dark:bg-zinc-950 rounded-xl text-[11px] border border-slate-700/60 dark:border-zinc-800 flex items-center gap-1.5"
-              >
-                <span className="font-semibold text-slate-300 dark:text-zinc-400">{acc.name}:</span>
-                <span className="font-bold text-emerald-400">{formatIDR(accountBalances[acc.id] ?? 0)}</span>
-              </div>
-            ))}
+            {accounts.map((acc) => {
+              const bal = accountBalances[acc.id] ?? 0;
+              return (
+                <div
+                  key={acc.id}
+                  className="shrink-0 px-2.5 py-1 bg-slate-800/80 dark:bg-zinc-950 rounded-xl text-[11px] border border-slate-700/60 dark:border-zinc-800 flex items-center gap-1.5"
+                >
+                  <span className="font-semibold text-slate-300 dark:text-zinc-400">{acc.name}:</span>
+                  <span className={`font-bold ${bal < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {formatIDR(bal)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           {/* Action Buttons: Transfer & 1-Tap Reconcile */}
@@ -344,7 +359,7 @@ export default function App() {
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-zinc-200">
               <History className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Riwayat Transaksi</span>
+              <span>Riwayat Transaksi ({filteredTransactions.length})</span>
             </div>
             <button
               type="button"
@@ -375,7 +390,7 @@ export default function App() {
             </div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-              {filteredTransactions.slice(0, 10).map((tx) => {
+              {filteredTransactions.slice(0, 15).map((tx) => {
                 const isExpense = tx.type === 'expense';
                 const isIncome = tx.type === 'income';
                 const isTransfer = tx.type === 'transfer';
@@ -409,21 +424,34 @@ export default function App() {
                           : `${acc?.name || 'Dompet'}`} &bull; {new Date(tx.date).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
-                    <div
-                      className={`font-bold ${
-                        isExpense
-                          ? 'text-rose-600 dark:text-rose-400'
-                          : isIncome
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : isTransfer
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : tx.amount >= 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}
-                    >
-                      {isExpense ? '-' : isIncome ? '+' : isTransfer ? '' : tx.amount >= 0 ? '+' : ''}
-                      {formatIDR(tx.amount)}
+
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`font-bold ${
+                          isExpense
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : isIncome
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : isTransfer
+                            ? 'text-blue-600 dark:text-blue-400'
+                            : tx.amount >= 0
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-rose-600 dark:text-rose-400'
+                        }`}
+                      >
+                        {isExpense ? '-' : isIncome ? '+' : isTransfer ? '' : tx.amount >= 0 ? '+' : ''}
+                        {formatIDR(tx.amount)}
+                      </div>
+
+                      {/* Delete Transaction Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTx(tx.id)}
+                        className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors"
+                        title="Hapus Transaksi"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 );

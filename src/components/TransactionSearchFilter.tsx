@@ -28,6 +28,9 @@ export function TransactionSearchFilter({
     onTypeFilterChange('');
   };
 
+  // Deduplicate categories by ID
+  const uniqueCategories = Array.from(new Map(categories.map((c) => [c.id, c])).values());
+
   return (
     <div className="space-y-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 p-3 rounded-2xl text-xs">
       {/* Search Input Bar */}
@@ -71,7 +74,7 @@ export function TransactionSearchFilter({
           className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-200 rounded-xl px-2.5 py-1.5 focus:outline-none text-[11px] font-medium"
         >
           <option value="">Semua Kategori</option>
-          {categories.map((c) => (
+          {uniqueCategories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
